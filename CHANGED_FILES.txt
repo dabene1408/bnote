@@ -7,6 +7,8 @@ BNote/src/data/modules/abstimmungdata.php
 BNote/src/data/modules/startdata.php
 BNote/src/export/notify.php
 Dockerfile
+docker/entrypoint.sh
 docker-compose.yml
 README.md
+NOTES.md
 CHANGED_FILES.txt

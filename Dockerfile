@@ -1,20 +1,19 @@
 FROM php:8.2-apache
 
-# To access a MySQL database the according PHP module must be installed
-RUN docker-php-ext-install mysqli && docker-php-ext-enable mysqli
-
-# The .htaccess file in the export API folder contains rewrite rules. Those
-# rules are not supported by Apache by default. The according Apache module
-# must be installed. Otherwise the BNote-App will not work.
-RUN a2enmod rewrite
-
-# The SimpleImage class used by website module and share module requires the GD
-# library for basic image processing. The base Docker image does not include
-# that library. The PHP GD library module itself needs libraries to handle PNG
-# and JPEG. The PHP module zip is required for downloading share folders.
+# System deps + PHP extensions
 RUN apt-get update -y \
-    && apt-get install -y libpng-dev libjpeg-dev libzip-dev \
+    && apt-get install -y libpng-dev libjpeg-dev libzip-dev libonig-dev git unzip curl \
     && docker-php-ext-configure gd --with-jpeg \
-    && docker-php-ext-install gd zip \
+    && docker-php-ext-install mysqli gd zip mbstring \
+    && a2enmod rewrite \
+    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /var/www/html
+
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY BNote/data/iso3166-code3.csv /opt/bnote-seed/iso3166-code3.csv
+RUN chmod +x /usr/local/bin/entrypoint.sh
+ENTRYPOINT ["entrypoint.sh"]
+CMD ["apache2-foreground"]

@@ -20,6 +20,10 @@ Benötigte Variablen (Service `php-apache`):
 
 Nach dem Setzen der Werte den Container neu starten.
 
+### Composer / vendor
+Falls `BNote/vendor` fehlt, installiert der Container beim Start automatisch die Composer-Abhängigkeiten.
+Dafür ist Internetzugang beim ersten Start nötig.
+
 ### Erinnerungsmails
 Beim Erstellen eines neuen Treffens oder einer neuen Abstimmung werden sofort Erinnerungsmails an alle Mitglieder mit hinterlegter E-Mail versendet. Leere E-Mail-Felder werden ignoriert.
 

@@ -1,10 +1,12 @@
-services:
+services: 
     php-apache:
         build: .
         ports:
             - 80:80
         volumes:
             - ./:/var/www/html
+            - bnote_config:/var/www/html/BNote/config
+            - bnote_data:/var/www/html/BNote/data
         environment:
             BNOTE_SMTP_HOST: "smtp.example.com"
             BNOTE_SMTP_PORT: "587"
@@ -26,11 +28,13 @@ services:
         environment:
             TZ: "Europe/Rome"
             MYSQL_ALLOW_EMPTY_PASSWORD: "no"
-            MYSQL_ROOT_PASSWORD: "XXXXX"
+            MYSQL_ROOT_PASSWORD: "root_passwort"
             MYSQL_USER: 'bnote_user'
-            MYSQL_PASSWORD: 'XXX'
+            MYSQL_PASSWORD: 'passwort'
             MYSQL_DATABASE: 'bnote'
         restart: unless-stopped
 
 volumes:
     mariadb:
+    bnote_config:
+    bnote_data:
