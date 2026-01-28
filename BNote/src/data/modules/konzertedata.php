@@ -200,6 +200,9 @@ class KonzerteData extends AbstractLocationData {
 		// add custom data
 		$this->createCustomFieldData(KonzerteData::$CUSTOM_DATA_OTYPE, $concertId, $values);
 		
+		// send reminder mail on creation (do not block on failure)
+		$this->sendCreationReminder($concertId, $values);
+		
 		// create trigger if configured
 		if($this->triggerServiceEnabled) {
 			$approve_dt = $values["approve_until"];
@@ -207,6 +210,29 @@ class KonzerteData extends AbstractLocationData {
 		}
 		
 		return $concertId;
+	}
+
+	private function sendCreationReminder($concertId, $values) {
+		$contacts = $this->getConcertContacts($concertId);
+		$contactIds = array();
+		for($i = 1; $i < count($contacts); $i++) {
+			$contactIds[] = $contacts[$i]["id"];
+		}
+		$emails = $this->getContactEmailsByIds($contactIds);
+		if(count($emails) == 0) {
+			return;
+		}
+		require_once($this->dirPrefix . $GLOBALS["DIR_LOGIC"] . "mailing.php");
+		$subject = $values["title"] . Lang::txt("Notifier_sendConcertNotification.message_1");
+		$body = Lang::txt("Notifier_sendConcertNotification.message_2") . $values["title"] . Lang::txt("Notifier_sendConcertNotification.message_3");
+		$bnote_url = $this->getSysdata()->getSystemURL();
+		$body .= '<a href="' . $bnote_url . '">' . Lang::txt("Notifier_sendConcertNotification.message_4") . "</a><br/>";
+		$body .= Lang::txt("Notifier_sendConcertNotification.message_5");
+		
+		$mail = new Mailing($subject, null);
+		$mail->setBcc($emails);
+		$mail->setBodyInHtml($body);
+		$mail->sendMailQuietly();
 	}
 	
 	function update($id, $values) {

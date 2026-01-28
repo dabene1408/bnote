@@ -1,4 +1,3 @@
-version: '3.5'
 services:
     php-apache:
         build: .
@@ -6,11 +5,22 @@ services:
             - 80:80
         volumes:
             - ./:/var/www/html
-        links:
-            - 'mariadb'
+        environment:
+            BNOTE_SMTP_HOST: "smtp.example.com"
+            BNOTE_SMTP_PORT: "587"
+            BNOTE_SMTP_USER: "user@example.com"
+            BNOTE_SMTP_PASS: "change-me"
+            BNOTE_SMTP_SECURE: "tls"
+            BNOTE_SMTP_FROM_EMAIL: "noreply@example.com"
+            BNOTE_SMTP_FROM_NAME: "BNote"
+            BNOTE_TRIGGER_CYCLE_DAYS: "3"
+            BNOTE_TRIGGER_REPEAT_COUNT: "3"
+        depends_on:
+            - mariadb
+        restart: unless-stopped
 
     mariadb:
-        image: mariadb:10.5
+        image: mariadb:11.4
         volumes:
             - mariadb:/var/lib/mysql
         environment:
@@ -20,6 +30,7 @@ services:
             MYSQL_USER: 'bnote_user'
             MYSQL_PASSWORD: 'XXX'
             MYSQL_DATABASE: 'bnote'
+        restart: unless-stopped
 
 volumes:
     mariadb:

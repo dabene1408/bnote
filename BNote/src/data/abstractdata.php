@@ -134,8 +134,16 @@ abstract class AbstractData {
 		}
 		# every n days send a reminder
 		$repeatCycle = intval($this->getSysdata()->getDynamicConfigParameter("trigger_cycle_days"));
+		$envCycle = getenv("BNOTE_TRIGGER_CYCLE_DAYS");
+		if($envCycle !== false && is_numeric($envCycle) && intval($envCycle) > 0) {
+			$repeatCycle = intval($envCycle);
+		}
 		# how often should this be repeated
 		$repeatCount = intval($this->getSysdata()->getDynamicConfigParameter("trigger_repeat_count"));
+		$envRepeat = getenv("BNOTE_TRIGGER_REPEAT_COUNT");
+		if($envRepeat !== false && is_numeric($envRepeat) && intval($envRepeat) > 0) {
+			$repeatCount = intval($envRepeat);
+		}
 		
 		# Create triggers
 		if($repeatCount > 0) {
@@ -151,6 +159,32 @@ abstract class AbstractData {
 				);
 			}
 		}
+	}
+	
+	/**
+	 * Returns non-empty email addresses for given contact IDs.
+	 * @param array $contactIds
+	 * @return array
+	 */
+	protected function getContactEmailsByIds($contactIds) {
+		if($contactIds == null || count($contactIds) == 0) {
+			return array();
+		}
+		$whereQ = array();
+		$params = array();
+		foreach($contactIds as $cid) {
+			$whereQ[] = "id = ?";
+			$params[] = array("i", $cid);
+		}
+		$q = "SELECT DISTINCT email FROM contact WHERE " . join(" OR ", $whereQ);
+		$emails = $this->database->flattenSelection($this->database->getSelection($q, $params), "email");
+		$filtered = array();
+		foreach($emails as $email) {
+			if($email != null && trim($email) != "") {
+				$filtered[] = $email;
+			}
+		}
+		return $filtered;
 	}
 	
 	/**

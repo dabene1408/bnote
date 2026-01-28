@@ -59,12 +59,35 @@ class AbstimmungData extends AbstractData {
 		$grps = GroupSelector::getPostSelection($this->adp()->getGroups(), "group");
 		$this->registerVoters($vid, $grps);
 		
+		// send reminder mail on creation (do not block on failure)
+		$this->sendCreationReminder($vid);
+		
 		// create trigger if available
 		if($this->triggerServiceEnabled) {
 			$this->createTrigger($end_dt, $this->buildTriggerData("V", $vid));
 		}
 		
 		return $vid;
+	}
+	
+	private function sendCreationReminder($voteId) {
+		$contactIds = $this->getOpenVoters($voteId);
+		$emails = $this->getContactEmailsByIds($contactIds);
+		if(count($emails) == 0) {
+			return;
+		}
+		require_once($this->dirPrefix . $GLOBALS["DIR_LOGIC"] . "mailing.php");
+		$vote = $this->findByIdNoRef($voteId);
+		$subject = $vote['name'] . Lang::txt("Notifier_sendVoteNotification.message_1");
+		$body = Lang::txt("Notifier_sendVoteNotification.message_2") . $vote['name'] . Lang::txt("Notifier_sendVoteNotification.message_3");
+		$bnote_url = $this->getSysdata()->getSystemURL();
+		$body .= "<a href=\"$bnote_url\">" . Lang::txt("Notifier_sendVoteNotification.message_4") . "</a><br/>";
+		$body .= Lang::txt("Notifier_sendVoteNotification.message_5");
+		
+		$mail = new Mailing($subject, null);
+		$mail->setBcc($emails);
+		$mail->setBodyInHtml($body);
+		$mail->sendMailQuietly();
 	}
 	
 	/**
@@ -446,7 +469,7 @@ class AbstimmungData extends AbstractData {
 				FROM vote_option vo JOIN vote_option_user vou ON vo.id = vou.vote_option
 			    JOIN user u ON vou.user = u.id
 			    JOIN contact c ON u.contact = c.id
-			    WHERE vote = 1;"
+			    WHERE vote = ?", array(array("i", $voteId))
 		);
 		$alreadyVotedContacts = $this->database->flattenSelection($alreadyVotedContactsDbSel, "id");
 		

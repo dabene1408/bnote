@@ -70,7 +70,14 @@ class Notifier {
 		$q = "SELECT DISTINCT email FROM contact WHERE " . join(" OR ", $whereQ);
 		global $system_data;
 		$addressesDbSel = $system_data->dbcon->getSelection($q, $params);
-		return $system_data->dbcon->flattenSelection($addressesDbSel, "email");
+		$emails = $system_data->dbcon->flattenSelection($addressesDbSel, "email");
+		$filtered = array();
+		foreach($emails as $email) {
+			if($email != null && trim($email) != "") {
+				array_push($filtered, $email);
+			}
+		}
+		return $filtered;
 	}
 	
 	private function sendEmailToContacts($contacts, $subject, $body) {
@@ -81,9 +88,13 @@ class Notifier {
 		global $dir_prefix;
 		require_once($dir_prefix . $GLOBALS["DIR_LOGIC"] . "mailing.php");
 		$mail = new Mailing($subject, null);
-		$mail->setBcc($this->getMailAddresses($contacts));  // string of addresses separated properly
+		$emails = $this->getMailAddresses($contacts);
+		if(count($emails) == 0) {
+			return true;
+		}
+		$mail->setBcc($emails);  // string of addresses separated properly
 		$mail->setBodyInHtml($body);
-		return $mail->sendMail();
+		return $mail->sendMailQuietly();
 	}
 	
 	private function ok($ok=true) {

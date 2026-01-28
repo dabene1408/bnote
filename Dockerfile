@@ -1,4 +1,4 @@
-FROM php:7.4.10-apache 
+FROM php:8.2-apache
 
 # To access a MySQL database the according PHP module must be installed
 RUN docker-php-ext-install mysqli && docker-php-ext-enable mysqli
@@ -11,11 +11,10 @@ RUN a2enmod rewrite
 # The SimpleImage class used by website module and share module requires the GD
 # library for basic image processing. The base Docker image does not include
 # that library. The PHP GD library module itself needs libraries to handle PNG
-# and JPEG.
-RUN apt-get update -y && apt-get install -y libpng-dev libjpeg-dev
-RUN docker-php-ext-configure gd --with-jpeg
-RUN docker-php-ext-install gd
-
-# The PHP module zip is required for downloading share folders.
-RUN apt-get install -y libzip-dev
-RUN docker-php-ext-install zip
+# and JPEG. The PHP module zip is required for downloading share folders.
+RUN apt-get update -y \
+    && apt-get install -y libpng-dev libjpeg-dev libzip-dev \
+    && docker-php-ext-configure gd --with-jpeg \
+    && docker-php-ext-install gd zip \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*

@@ -107,8 +107,20 @@ class Mailing {
 	 * <strong>Just by creating an object of this class, no mail is sent!</strong>
 	 */
 	public function sendMail() {
+		return $this->sendMailInternal(false);
+	}
+	
+	/**
+	 * Sends the email without throwing BNoteError on failures.
+	 */
+	public function sendMailQuietly() {
+		return $this->sendMailInternal(true);
+	}
+	
+	private function sendMailInternal($silent) {
 		// abort if in demo mode
 		if($this->sysdata->inDemoMode()) {
+			if($silent) return false;
 			new BNoteError(Lang::txt("Mailing_sendMail.BNoteError_1"));
 			return false;
 		}
@@ -137,12 +149,15 @@ class Mailing {
 		
 		// validation
 		if($this->bcc == null && $this->to == null) {
+			if($silent) return false;
 			new BNoteError(Lang::txt("Mailing_sendMail.BNoteError_2"));
 		}
 		if($this->body == null) {
+			if($silent) return false;
 			new BNoteError(Lang::txt("Mailing_sendMail.BNoteError_3"));
 		}
 		if($this->subject == null) {
+			if($silent) return false;
 			new BNoteError(Lang::txt("Mailing_sendMail.BNoteError_4"));
 		}
 		
@@ -184,9 +199,38 @@ class Mailing {
 		// sending mail
 		$mail = new PHPMailer(true);
 		try {
-			$mail->isMail();  // use mail() function from PHP
+			$mail->isSMTP();  // use SMTP from Docker env
+			$smtpHost = getenv("BNOTE_SMTP_HOST");
+			$smtpPort = getenv("BNOTE_SMTP_PORT");
+			$smtpUser = getenv("BNOTE_SMTP_USER");
+			$smtpPass = getenv("BNOTE_SMTP_PASS");
+			$smtpSecure = getenv("BNOTE_SMTP_SECURE");
+			if($smtpHost == false || $smtpHost == "") {
+				new BNoteError(Lang::txt("Mailing_sendMail.BNoteError_5") . " SMTP host missing");
+				return false;
+			}
+			$mail->Host = $smtpHost;
+			if($smtpPort != false && $smtpPort != "") {
+				$mail->Port = intval($smtpPort);
+			}
+			$mail->SMTPAuth = ($smtpUser != false && $smtpUser != "");
+			if($mail->SMTPAuth) {
+				$mail->Username = $smtpUser;
+				$mail->Password = ($smtpPass == false ? "" : $smtpPass);
+			}
+			if($smtpSecure != false && $smtpSecure != "") {
+				$mail->SMTPSecure = $smtpSecure;
+			} else if(isset($mail->Port) && $mail->Port == 465) {
+				$mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+			} else {
+				$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+			}
+			$mail->SMTPAutoTLS = true;
 			$mail->CharSet = PHPMailer::CHARSET_UTF8;
-			$mail->setFrom($fromEmail, $fromName);
+			$envFromEmail = getenv("BNOTE_SMTP_FROM_EMAIL");
+			$envFromName = getenv("BNOTE_SMTP_FROM_NAME");
+			$mail->setFrom(($envFromEmail != false && $envFromEmail != "") ? $envFromEmail : $fromEmail,
+				($envFromName != false && $envFromName != "") ? $envFromName : $fromName);
 			if(isset($replyTo)) {
 				$mail->addReplyTo($replyTo);
 			}
@@ -210,7 +254,9 @@ class Mailing {
 			
 			return $mail->send();
 		} catch (\Exception $e) {
-			new BNoteError(Lang::txt("Mailing_sendMail.BNoteError_5") . " {$mail->ErrorInfo}");
+			if(!$silent) {
+				new BNoteError(Lang::txt("Mailing_sendMail.BNoteError_5") . " {$mail->ErrorInfo}");
+			}
 		}
 		return False;
 	}

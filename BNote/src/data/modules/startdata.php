@@ -76,6 +76,9 @@ class StartData extends AbstractLocationData {
 			default:
 				new BNoteError("Unknown entity for $otype");
 		}
+		if($entity == "concert" && intval($participate) === 0 && trim((string)$reason) == "") {
+			new BNoteError(Lang::txt("StartData_saveParticipation.reason_required"));
+		}
 		$table = $entity . "_user"; // table name hardcoded, see switch above
 		
 		// remove

@@ -1,0 +1,12 @@
+BNote/lang/lang_de.php
+BNote/lang/lang_en.php
+BNote/src/logic/mailing.php
+BNote/src/data/abstractdata.php
+BNote/src/data/modules/konzertedata.php
+BNote/src/data/modules/abstimmungdata.php
+BNote/src/data/modules/startdata.php
+BNote/src/export/notify.php
+Dockerfile
+docker-compose.yml
+README.md
+CHANGED_FILES.txt
