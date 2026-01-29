@@ -1,4 +1,4 @@
-services: 
+services:
     php-apache:
         build: .
         ports:
@@ -7,46 +7,8 @@ services:
             - ./:/var/www/html
             - bnote_config:/var/www/html/BNote/config
             - bnote_data:/var/www/html/BNote/data
-        environment:
-            # Bootstrap (required)
-            BNOTE_BOOTSTRAP: "0"
-            BNOTE_SYSTEM_URL: "http://localhost/" # required
-            BNOTE_COMPANY_NAME: "BNote" # required
-            BNOTE_COMPANY_STREET: ""
-            BNOTE_COMPANY_ZIP: ""
-            BNOTE_COMPANY_CITY: "" # required
-            BNOTE_COMPANY_COUNTRY: "DEU" # required
-            BNOTE_COMPANY_PHONE: ""
-            BNOTE_COMPANY_MAIL: "support@bnote.info" # required
-            BNOTE_COMPANY_WEB: ""
-            BNOTE_DB_HOST: "mariadb" # required
-            BNOTE_DB_PORT: "3306" # required
-            BNOTE_DB_NAME: "bnote" # required
-            BNOTE_DB_USER: "bnote_user" # required
-            BNOTE_DB_PASS: "XXX" # required
-            BNOTE_ADMIN_LOGIN: "admin" # required
-            BNOTE_ADMIN_PASSWORD: "admin123" # required
-            BNOTE_ADMIN_NAME: "Admin" # required
-            BNOTE_ADMIN_SURNAME: "User" # required
-            BNOTE_ADMIN_COMPANY: ""
-            BNOTE_ADMIN_PHONE: ""
-            BNOTE_ADMIN_MOBILE: ""
-            BNOTE_ADMIN_EMAIL: "support@bnote.info" # required
-            BNOTE_ADMIN_STREET: ""
-            BNOTE_ADMIN_ZIP: ""
-            BNOTE_ADMIN_CITY: ""
-            BNOTE_ADMIN_STATE: ""
-            BNOTE_ADMIN_COUNTRY: "DEU" # required
-            BNOTE_ADMIN_INSTRUMENT: "1" # required
-            BNOTE_SMTP_HOST: "smtp.example.com"
-            BNOTE_SMTP_PORT: "587"
-            BNOTE_SMTP_USER: "user@example.com"
-            BNOTE_SMTP_PASS: "change-me"
-            BNOTE_SMTP_SECURE: "tls"
-            BNOTE_SMTP_FROM_EMAIL: "noreply@example.com"
-            BNOTE_SMTP_FROM_NAME: "BNote"
-            BNOTE_TRIGGER_CYCLE_DAYS: "3"
-            BNOTE_TRIGGER_REPEAT_COUNT: "3"
+        env_file:
+            - .env
         depends_on:
             - mariadb
         restart: unless-stopped
@@ -55,13 +17,8 @@ services:
         image: mariadb:11.4
         volumes:
             - mariadb:/var/lib/mysql
-        environment:
-            TZ: "Europe/Rome"
-            MYSQL_ALLOW_EMPTY_PASSWORD: "no"
-            MYSQL_ROOT_PASSWORD: "root_passwort"
-            MYSQL_USER: 'bnote_user'
-            MYSQL_PASSWORD: 'passwort'
-            MYSQL_DATABASE: 'bnote'
+        env_file:
+            - .env
         restart: unless-stopped
 
 volumes:
