@@ -62,13 +62,13 @@ class Installation {
 			Writing::p(Lang::txt("Installation_companyConfig.message_2"));
 			
 			$form = new Form(Lang::txt("Installation_companyConfig.Form"), "?step=databaseConfig&func=process&last=companyConfig");
-			$form->addElement(Lang::txt("Installation_companyConfig.Name"), new Field("Name", "", FieldType::CHAR));
+			$form->addElement(Lang::txt("Installation_companyConfig.Name") . " *", new Field("Name", "", FieldType::CHAR));
 			$form->addElement(Lang::txt("Installation_companyConfig.Street"), new Field("Street", "", FieldType::CHAR));
 			$form->addElement(Lang::txt("Installation_companyConfig.Zip"), new Field("Zip", "", FieldType::INTEGER));
-			$form->addElement(Lang::txt("Installation_companyConfig.City"), new Field("City", "", FieldType::CHAR));
-			$form->addElement(Lang::txt("Installation_companyConfig.Country"), new Field("Country", "", FieldType::CHAR));
+			$form->addElement(Lang::txt("Installation_companyConfig.City") . " *", new Field("City", "", FieldType::CHAR));
+			$form->addElement(Lang::txt("Installation_companyConfig.Country") . " *", new Field("Country", "", FieldType::CHAR));
 			$form->addElement(Lang::txt("Installation_companyConfig.Phone"), new Field("Phone", "", FieldType::CHAR));
-			$form->addElement(Lang::txt("Installation_companyConfig.Mail"), new Field("Mail", "", FieldType::CHAR));
+			$form->addElement(Lang::txt("Installation_companyConfig.Mail") . " *", new Field("Mail", "", FieldType::CHAR));
 			$form->addElement(Lang::txt("Installation_companyConfig.Web"), new Field("Web", "", FieldType::CHAR));
 			$form->changeSubmitButton(Lang::txt("Installation_companyConfig.submit"));
 			$form->write();
@@ -176,11 +176,11 @@ class Installation {
 			Writing::p(Lang::txt("Installation_databaseConfig.message_2"));
 				
 			$form = new Form(Lang::txt("Installation_databaseConfig.Form"), "?step=adminUser&func=process&last=databaseConfig");
-			$form->addElement(Lang::txt("Installation_databaseConfig.Server"), new Field("Server", "localhost", FieldType::CHAR));
-			$form->addElement(Lang::txt("Installation_databaseConfig.Port"), new Field("Port", "3306", FieldType::INTEGER));
-			$form->addElement(Lang::txt("Installation_databaseConfig.Name"), new Field("Name", "", FieldType::CHAR));
-			$form->addElement(Lang::txt("Installation_databaseConfig.User"), new Field("User", "", FieldType::CHAR));
-			$form->addElement(Lang::txt("Installation_databaseConfig.Password"), new Field("Password", "", FieldType::PASSWORD));
+			$form->addElement(Lang::txt("Installation_databaseConfig.Server") . " *", new Field("Server", "localhost", FieldType::CHAR));
+			$form->addElement(Lang::txt("Installation_databaseConfig.Port") . " *", new Field("Port", "3306", FieldType::INTEGER));
+			$form->addElement(Lang::txt("Installation_databaseConfig.Name") . " *", new Field("Name", "", FieldType::CHAR));
+			$form->addElement(Lang::txt("Installation_databaseConfig.User") . " *", new Field("User", "", FieldType::CHAR));
+			$form->addElement(Lang::txt("Installation_databaseConfig.Password") . " *", new Field("Password", "", FieldType::PASSWORD));
 			$form->changeSubmitButton(Lang::txt("Installation_databaseConfig.Submit"));
 			$form->write();
 		}		
@@ -1003,19 +1003,19 @@ class Installation {
 		Writing::h1(Lang::txt("Installation_adminUser.title"));
 		
 		$form = new Form(Lang::txt("Installation_adminUser.form"), "?step=finalize&func=process&last=adminUser");
-		$form->addElement(Lang::txt("Installation_adminUser.login"), new Field("login", "", FieldType::CHAR));
-		$form->addElement(Lang::txt("Installation_adminUser.password"), new Field("password", "", FieldType::PASSWORD));
-		$form->addElement(Lang::txt("Installation_adminUser.name"), new Field("name", "", FieldType::CHAR));
-		$form->addElement(Lang::txt("Installation_adminUser.surname"), new Field("surname", "", FieldType::CHAR));
+		$form->addElement(Lang::txt("Installation_adminUser.login") . " *", new Field("login", "", FieldType::CHAR));
+		$form->addElement(Lang::txt("Installation_adminUser.password") . " *", new Field("password", "", FieldType::PASSWORD));
+		$form->addElement(Lang::txt("Installation_adminUser.name") . " *", new Field("name", "", FieldType::CHAR));
+		$form->addElement(Lang::txt("Installation_adminUser.surname") . " *", new Field("surname", "", FieldType::CHAR));
 		$form->addElement(Lang::txt("Installation_adminUser.company"), new Field("company", "", FieldType::CHAR));
 		$form->addElement(Lang::txt("Installation_adminUser.phone"), new Field("phone", "", FieldType::CHAR));
 		$form->addElement(Lang::txt("Installation_adminUser.mobile"), new Field("mobile", "", FieldType::CHAR));
-		$form->addElement(Lang::txt("Installation_adminUser.email"), new Field("email", "", FieldType::CHAR));
+		$form->addElement(Lang::txt("Installation_adminUser.email") . " *", new Field("email", "", FieldType::CHAR));
 		$form->addElement(Lang::txt("Installation_adminUser.street"), new Field("street", "", FieldType::CHAR));
 		$form->addElement(Lang::txt("Installation_adminUser.zip"), new Field("zip", "", FieldType::INTEGER));
 		$form->addElement(Lang::txt("Installation_adminUser.city"), new Field("city", "", FieldType::CHAR));
 		$form->addElement(Lang::txt("Installation_adminUser.state"), new Field("state", "", FieldType::CHAR));
-		$form->addElement(Lang::txt("Installation_adminUser.country"), new Field("country", "DEU", FieldType::CHAR));
+		$form->addElement(Lang::txt("Installation_adminUser.country") . " *", new Field("country", "DEU", FieldType::CHAR));
 		
 		$db = $this->getDbConnection();
 		$instruments = $db->getSelection("SELECT i.id, i.name, c.name as category
@@ -1027,7 +1027,7 @@ class Installation {
 			$label = $instruments[$i]["category"] . ": " . $instruments[$i]["name"];
 			$dd->addOption($label, $instruments[$i]["id"]);
 		}
-		$form->addElement("Instrument", $dd);
+		$form->addElement("Instrument *", $dd);
 		
 		$form->write();
 	}

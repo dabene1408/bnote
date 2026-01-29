@@ -24,6 +24,21 @@ Nach dem Setzen der Werte den Container neu starten.
 Falls `BNote/vendor` fehlt, installiert der Container beim Start automatisch die Composer-Abhängigkeiten.
 Dafür ist Internetzugang beim ersten Start nötig.
 
+### Bootstrap ohne install.php
+Für den Erststart kannst du alle Installationsdaten per ENV setzen. Wenn `BNOTE_BOOTSTRAP=1` ist, erzeugt der Container automatisch:
+- `config/company.xml`
+- `config/config.xml`
+- `config/database.xml`
+und initialisiert die Datenbank inkl. Admin-User.
+
+Wichtige ENV-Variablen (Auszug):
+- `BNOTE_SYSTEM_URL`
+- `BNOTE_COMPANY_*`
+- `BNOTE_DB_*`
+- `BNOTE_ADMIN_*`
+
+Standardwerte stehen in `docker-compose.yml`.
+
 ### Erinnerungsmails
 Beim Erstellen eines neuen Treffens oder einer neuen Abstimmung werden sofort Erinnerungsmails an alle Mitglieder mit hinterlegter E-Mail versendet. Leere E-Mail-Felder werden ignoriert.
 
