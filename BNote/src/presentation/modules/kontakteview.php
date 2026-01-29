@@ -211,6 +211,9 @@ class KontakteView extends CrudRefLocationView {
 		$form = new Form(Lang::txt($this->getAddEntityName()), $this->modePrefix() . "add");		
 		// just add all custom and regular fields
 		$form->autoAddElementsNew($this->getData()->getFields());		
+		$form->setFieldRequired("name");
+		$form->setFieldRequired("surname");
+		$form->setFieldRequired("nickname");
 		$form->removeElement("id");
 		$form->removeElement("status");
 		
@@ -225,7 +228,7 @@ class KontakteView extends CrudRefLocationView {
 		// contact group selection
 		$groups = $this->getData()->getGroups();
 		$gs = new GroupSelector($groups, array(), "group");
-		$form->addElement(Lang::txt("KontakteView_addEntity.group"), $gs);
+		$form->addElement(Lang::txt("KontakteView_addEntity.group"), $gs, true);
 		
 		$form->write();
 	}
@@ -380,6 +383,9 @@ class KontakteView extends CrudRefLocationView {
 		
 		$form = new Form(Lang::txt("KontakteView_editEntityForm.Form"), $this->modePrefix() . "edit_process&id=" . $_GET["id"]);
 		$form->autoAddElements($this->getData()->getFields(), $this->getData()->getTable(), $_GET["id"], array("company"));
+		$form->setFieldRequired("name");
+		$form->setFieldRequired("surname");
+		$form->setFieldRequired("nickname");
 		$form->removeElement("id");
 		
 		// instrument
@@ -406,7 +412,7 @@ class KontakteView extends CrudRefLocationView {
 		$groups = $this->getData()->getGroups();
 		$userGroups = $this->getData()->getContactGroupsArray($_GET["id"]);
 		$gs = new GroupSelector($groups, $userGroups, "group");
-		$form->addElement(Lang::txt("KontakteView_editEntityForm.group"), $gs);
+		$form->addElement(Lang::txt("KontakteView_editEntityForm.group"), $gs, true);
 		
 		$form->write();
 	}

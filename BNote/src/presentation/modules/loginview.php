@@ -28,8 +28,8 @@ class LoginView extends AbstractView {
 		
 		// login form
 		$form = new Form("", $this->modePrefix() . "login");
-		$form->addElement(Lang::txt("LoginView_login.login"), new Field("login", "", FieldType::CHAR));
-		$form->addElement(Lang::txt("LoginView_login.password"), new Field("password", "", FieldType::PASSWORD));
+		$form->addElement(Lang::txt("LoginView_login.login"), new Field("login", "", FieldType::CHAR), true);
+		$form->addElement(Lang::txt("LoginView_login.password"), new Field("password", "", FieldType::PASSWORD), true);
 		if(isset($_GET["fwd"])) {
 			$form->addHidden("fwd", $_GET["fwd"]);
 		}

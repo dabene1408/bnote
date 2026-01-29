@@ -47,9 +47,11 @@ class UserView extends CrudRefView {
 		$form->removeElement("lastlogin");
 		$form->removeElement("isActive");
 		$form->removeElement("contact");
+		$form->setFieldRequired("login");
+		$form->setFieldRequired("password");
 		
 		// manually add contacts
-		$form->addElement(Lang::txt("UserView_addEntity.contactDropdown"), $this->contactDropdown());
+		$form->addElement(Lang::txt("UserView_addEntity.contactDropdown"), $this->contactDropdown(), true);
 		$form->write();
 	}
 	

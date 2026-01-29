@@ -41,6 +41,16 @@ $(document).ready(function() {
 			else if($(obj).hasClass("minute")) {
 				m = $(obj).val();
 			}
+			else if($(obj).hasClass("bnote-datetime-time") || $(obj).attr("type") == "time") {
+				var t = $(obj).val();
+				if(t && t.indexOf(":") > 0) {
+					h = t.split(":")[0];
+					m = t.split(":")[1];
+				}
+			}
+			else if($(obj).hasClass("bnote-datetime-date") || $(obj).attr("type") == "date") {
+				dt = $(obj).val();
+			}
 			else {
 				dt = $(obj).val();
 			}
@@ -55,7 +65,24 @@ $(document).ready(function() {
 		else {
 			val = dt + " " + h + ":" + m;
 		}
-		$('.copyDateTarget').val(val);
+		$('.copyDateTarget').each(function(i, obj) {
+			var $obj = $(obj);
+			if($obj.hasClass("hour")) {
+				$obj.val(h);
+			}
+			else if($obj.hasClass("minute")) {
+				$obj.val(m);
+			}
+			else if($obj.hasClass("bnote-datetime-time") || $obj.attr("type") == "time") {
+				if(h != "" && m != "") $obj.val(h + ":" + m);
+			}
+			else if($obj.hasClass("bnote-datetime-date") || $obj.attr("type") == "date") {
+				$obj.val(dt);
+			}
+			else {
+				$obj.val(val);
+			}
+		});
 	});
 	
 	$("#fb-fileupload").dropzone({

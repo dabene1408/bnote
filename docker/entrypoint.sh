@@ -1,34 +1,58 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-mkdir -p /var/www/html/BNote/data/programs \
-  /var/www/html/BNote/data/members \
-  /var/www/html/BNote/data/webpages \
-  /var/www/html/BNote/data/gallery \
-  /var/www/html/BNote/data/share \
-  /var/www/html/BNote/data/share/users \
-  /var/www/html/BNote/data/share/groups
+BNOTE_ROOT="/var/www/html/BNote"
 
-if [ ! -f /var/www/html/BNote/data/iso3166-code3.csv ] && [ -f /opt/bnote-seed/iso3166-code3.csv ]; then
-  cp /opt/bnote-seed/iso3166-code3.csv /var/www/html/BNote/data/iso3166-code3.csv
+wait_for_db() {
+  local host port retries
+  host="${BNOTE_DB_HOST:-mariadb}"
+  port="${BNOTE_DB_PORT:-3306}"
+  retries=30
+
+  echo "waiting for database at ${host}:${port}..."
+  for _ in $(seq 1 "${retries}"); do
+    if (echo > "/dev/tcp/${host}/${port}") >/dev/null 2>&1; then
+      echo "database port is reachable"
+      return 0
+    fi
+    sleep 2
+  done
+
+  echo "database not reachable after ${retries} attempts"
+  return 1
+}
+
+mkdir -p "${BNOTE_ROOT}/config" \
+  "${BNOTE_ROOT}/data/programs" \
+  "${BNOTE_ROOT}/data/members" \
+  "${BNOTE_ROOT}/data/webpages" \
+  "${BNOTE_ROOT}/data/gallery" \
+  "${BNOTE_ROOT}/data/share" \
+  "${BNOTE_ROOT}/data/share/users" \
+  "${BNOTE_ROOT}/data/share/groups"
+
+if [ ! -f "${BNOTE_ROOT}/data/iso3166-code3.csv" ] && [ -f /opt/bnote-seed/iso3166-code3.csv ]; then
+  cp /opt/bnote-seed/iso3166-code3.csv "${BNOTE_ROOT}/data/iso3166-code3.csv"
 fi
-chown -R www-data:www-data /var/www/html/BNote/config /var/www/html/BNote/data || true
+chown -R www-data:www-data "${BNOTE_ROOT}/config" "${BNOTE_ROOT}/data" || true
 
-if [ ! -f /var/www/html/BNote/vendor/autoload.php ]; then
-  if [ -f /var/www/html/BNote/composer.json ]; then
+if [ ! -f "${BNOTE_ROOT}/vendor/autoload.php" ]; then
+  if [ -f "${BNOTE_ROOT}/composer.json" ]; then
     echo "vendor/ missing -> running composer install"
-    (cd /var/www/html/BNote && composer install --no-interaction --no-progress --prefer-dist)
+    (cd "${BNOTE_ROOT}" && composer install --no-interaction --no-progress --prefer-dist)
   fi
 fi
 
-if [ "${BNOTE_BOOTSTRAP:-0}" = "1" ] && [ ! -f /var/www/html/BNote/config/.bootstrap.done ]; then
+if [ "${BNOTE_BOOTSTRAP:-0}" = "1" ] && [ ! -f "${BNOTE_ROOT}/config/.bootstrap.done" ]; then
   echo "bootstrap: generating config and initializing database"
 
-  if [ ! -f /var/www/html/BNote/config/config.xml ]; then
+  wait_for_db
+
+  if [ ! -f "${BNOTE_ROOT}/config/config.xml" ]; then
     SYSTEM_URL="${BNOTE_SYSTEM_URL:-http://localhost/}"
     ADMIN_MAIL="${BNOTE_COMPANY_MAIL:-support@bnote.info}"
     THEME_NAME="${BNOTE_THEME:-default}"
-    cat > /var/www/html/BNote/config/config.xml <<EOF
+    cat > "${BNOTE_ROOT}/config/config.xml" <<EOF
 <?xml version="1.0" encoding="utf-8" ?>
 <Software Name="BNote">
 
@@ -66,7 +90,7 @@ and should be displayed and functional, otherwise false. -->
 EOF
   fi
 
-  php -r '
+  (cd "${BNOTE_ROOT}" && php -r '
     parse_str("func=process&last=companyConfig", $_GET);
     $_POST = array(
       "Name" => getenv("BNOTE_COMPANY_NAME") ?: "BNote",
@@ -79,9 +103,9 @@ EOF
       "Web" => getenv("BNOTE_COMPANY_WEB") ?: ""
     );
     include "/var/www/html/BNote/install.php";
-  '
+  ')
 
-  php -r '
+  (cd "${BNOTE_ROOT}" && php -r '
     parse_str("func=process&last=databaseConfig", $_GET);
     $_POST = array(
       "Server" => getenv("BNOTE_DB_HOST") ?: "mariadb",
@@ -91,9 +115,9 @@ EOF
       "Password" => getenv("BNOTE_DB_PASS") ?: ""
     );
     include "/var/www/html/BNote/install.php";
-  '
+  ')
 
-  php -r '
+  (cd "${BNOTE_ROOT}" && php -r '
     parse_str("func=process&last=adminUser", $_GET);
     $_POST = array(
       "login" => getenv("BNOTE_ADMIN_LOGIN") ?: "admin",
@@ -112,9 +136,11 @@ EOF
       "instrument" => getenv("BNOTE_ADMIN_INSTRUMENT") ?: "1"
     );
     include "/var/www/html/BNote/install.php";
-  '
+  ')
 
-  touch /var/www/html/BNote/config/.bootstrap.done
+  chown -R www-data:www-data "${BNOTE_ROOT}/config" "${BNOTE_ROOT}/data" || true
+
+  touch "${BNOTE_ROOT}/config/.bootstrap.done"
 fi
 
 exec "$@"

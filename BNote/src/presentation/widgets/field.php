@@ -151,11 +151,33 @@ class Field implements iWriteable {
 	private function Datetimefield() {
 		$css = ($this->cssClass != null) ? $this->cssClass : "";
 		$val = $this->default_value;
-		// optionally convert database dates to HTML5-compatible dates
-		if(is_string($val) && strlen($val) > 10 && $val[10] == " ") {
-			$val = substr($val, 0, 10) . "T" . substr($val, 11);
+		$dateVal = "";
+		$timeVal = "";
+		if(is_string($val) && $val != "") {
+			// optionally convert database dates to HTML5-compatible dates
+			if(strlen($val) > 10 && $val[10] == " ") {
+				$val = substr($val, 0, 10) . "T" . substr($val, 11);
+			}
+			if(strpos($val, "T") !== false) {
+				$parts = explode("T", $val, 2);
+				$dateVal = $parts[0];
+				$timeVal = substr($parts[1], 0, 5);
+			}
+			else if(strlen($val) >= 10) {
+				$dateVal = substr($val, 0, 10);
+			}
 		}
-		return '<input class="form-control ' . $css . '" type="datetime-local" name="' . $this->name . '" value="' . $val . '" />';
+		$hiddenVal = ($dateVal != "" && $timeVal != "") ? ($dateVal . "T" . $timeVal) : "";
+		$baseId = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $this->name);
+		$dateId = $baseId . "_date";
+		$timeId = $baseId . "_time";
+		$hiddenId = $baseId . "_value";
+		return '<div class="input-group">'
+				. '<input class="form-control ' . $css . ' bnote-datetime-date" type="date" name="' . $this->name . '_date" id="' . $dateId . '" value="' . $dateVal . '" />'
+				. '<input class="form-control ' . $css . ' bnote-datetime-time" type="time" name="' . $this->name . '_time" id="' . $timeId . '" value="' . $timeVal . '" step="300" />'
+				. '</div>'
+				. '<input type="hidden" name="' . $this->name . '" id="' . $hiddenId . '" value="' . $hiddenVal . '" />'
+				. '<script>(function(){var d=document.getElementById("' . $dateId . '");var t=document.getElementById("' . $timeId . '");var h=document.getElementById("' . $hiddenId . '");if(!d||!t||!h){return;}var sync=function(){var dv=d.value;var tv=t.value;h.value=(dv&&tv)?(dv+"T"+tv):"";};d.addEventListener("input",sync);t.addEventListener("input",sync);d.addEventListener("change",sync);t.addEventListener("change",sync);sync();})();</script>';
 	}
 	
 	/**

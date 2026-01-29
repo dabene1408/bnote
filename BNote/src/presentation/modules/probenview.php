@@ -168,8 +168,7 @@ class ProbenView extends CrudRefLocationView {
 	function addSerie() {		
 		$form = new Form(Lang::txt("ProbenView_addSerie.Form"), $this->modePrefix() . "processSerie");
 		
-		$form->addElement(Lang::txt("ProbenView_addSerie.name"), new Field("name", "", FieldType::CHAR));
-		$form->setFieldRequired(Lang::txt("ProbenView_addSerie.name"));
+		$form->addElement(Lang::txt("ProbenView_addSerie.name"), new Field("name", "", FieldType::CHAR), true);
 		
 		$cycle = new Dropdown("cycle");
 		$cycle->addOption(Lang::txt("ProbenView_addSerie.cycle_1"), "1");
@@ -179,12 +178,10 @@ class ProbenView extends CrudRefLocationView {
 		$first_session = new Field("first_session", "", FieldType::DATE);
 		$first_session->setCssClass("copyDateOrigin");
 		$form->addElement(Lang::txt("ProbenView_addSerie.first_session"), $first_session, true, 3);
-		$form->setFieldRequired(Lang::txt("ProbenView_addSerie.first_session"));
 		
 		$last_session = new Field("last_session", "", FieldType::DATE);
 		$last_session->setCssClass("copyDateTarget");
 		$form->addElement(Lang::txt("ProbenView_addSerie.last_session"), $last_session, true, 3);
-		$form->setFieldRequired(Lang::txt("ProbenView_addSerie.last_session"));
 		
 		
 		$form->addElement(Lang::txt("ProbenView_addSerie.default_time"), new Field("default_time", $this->getData()->getDefaultTime(), FieldType::TIME), true, 3);
@@ -201,8 +198,7 @@ class ProbenView extends CrudRefLocationView {
 		
 		$gs = new GroupSelector($this->getData()->adp()->getGroups(true, true), array(), "group");
 		$gs->setNameColumn("name_member");
-		$form->addElement(Lang::txt("ProbenView_addSerie.group"), $gs);
-		$form->setFieldRequired(Lang::txt("ProbenView_addSerie.group"));
+		$form->addElement(Lang::txt("ProbenView_addSerie.group"), $gs, true);
 		
 		$this->appendCustomFieldsToForm($form, 'r');
 		

@@ -223,8 +223,7 @@ class FinanceView extends CrudView {
 			$dd->addOption($capt, $val);
 		}
 		$dd->setSelected(1);
-		$form->addElement(Lang::txt("FinanceView_addBooking.btype"), $dd);
-		$form->setFieldRequired(Lang::txt("FinanceView_addBooking.btype"));
+		$form->addElement(Lang::txt("FinanceView_addBooking.btype"), $dd, true);
 		
 		$objdd = $this->getController()->getRecpayCtrl()->getView()->objectReferenceForm();
 		$form->addElement(Lang::txt("FinanceView_addBooking.otype"), $objdd);

@@ -1,3 +1,4 @@
 <?php
-header("location: BNote/index.php");
+header("Location: /BNote/");
+exit;
 ?>

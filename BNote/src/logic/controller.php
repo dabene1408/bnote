@@ -45,7 +45,7 @@ class Controller {
 		require_once $GLOBALS['DIR_PRESENTATION'] . "crudreflocationview.php";
 
 		// check whether there is an individual controller, if not go by default
-		require($GLOBALS['DIR_LOGIC'] . "defaultcontroller.php");
+		require_once $GLOBALS['DIR_LOGIC'] . "defaultcontroller.php";
 		$modCtrlPath = $GLOBALS["DIR_LOGIC_MODULES"] . $modName . "controller.php";
 		$individualController = false;
 		if(file_exists($modCtrlPath)) {
