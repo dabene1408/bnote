@@ -215,7 +215,7 @@ class Field implements iWriteable {
 		$attrs = $this->buildAttributes('data-bnote-datetime="1"');
 		return '<div class="input-group">'
 				. '<input class="form-control ' . $css . ' bnote-datetime-date" type="date" name="' . $this->name . '_date" id="' . $dateId . '" value="' . $dateVal . '"' . $attrs . ' />'
-				. '<input class="form-control ' . $css . ' bnote-datetime-time" type="time" name="' . $this->name . '_time" id="' . $timeId . '" value="' . $timeVal . '" step="300"' . $attrs . ' />'
+				. '<input class="form-control ' . $css . ' bnote-datetime-time" type="time" name="' . $this->name . '_time" id="' . $timeId . '" value="' . $timeVal . '" step="60"' . $attrs . ' />'
 				. '</div>'
 				. '<input type="hidden" name="' . $this->name . '" id="' . $hiddenId . '" value="' . $hiddenVal . '" />'
 				. '<script>(function(){var d=document.getElementById("' . $dateId . '");var t=document.getElementById("' . $timeId . '");var h=document.getElementById("' . $hiddenId . '");if(!d||!t||!h){return;}var sync=function(){var dv=d.value;var tv=t.value;h.value=(dv&&tv)?(dv+"T"+tv):"";};d.addEventListener("input",sync);t.addEventListener("input",sync);d.addEventListener("change",sync);t.addEventListener("change",sync);sync();})();</script>';

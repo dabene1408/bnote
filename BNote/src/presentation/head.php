@@ -13,7 +13,41 @@
  <link rel="stylesheet" type="text/css" href="vendor/enyo/dropzone/dist/min/dropzone.min.css" />
  <link rel="stylesheet" href="vendor/twbs/bootstrap-icons/font/bootstrap-icons.min.css" />
  <link rel="stylesheet" type="text/css" href="vendor/datatables/datatables/media/css/jquery.dataTables.min.css" />
- <link rel="stylesheet" type="text/css" id="bnote-theme-css" data-light-theme="<?php echo $system_data->getTheme(); ?>" data-dark-theme="dark" href="<?php echo "style/css/" . $system_data->getTheme() . "/bnote.css"?>" />
+ <script type="text/javascript">
+ (function() {
+   try {
+     var stored = localStorage.getItem("bnote-theme");
+     var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+     var theme = (stored === "dark" || stored === "light") ? stored : (prefersDark ? "dark" : "light");
+     var lightTheme = "<?php echo $system_data->getTheme(); ?>";
+     var darkTheme = "dark";
+     var themeFolder = (theme === "dark") ? darkTheme : lightTheme;
+     var link = document.createElement("link");
+     link.rel = "stylesheet";
+     link.type = "text/css";
+     link.id = "bnote-theme-css";
+     link.setAttribute("data-light-theme", lightTheme);
+     link.setAttribute("data-dark-theme", darkTheme);
+     link.href = "style/css/" + themeFolder + "/bnote.css";
+     document.write(link.outerHTML);
+     document.documentElement.setAttribute("data-bnote-theme", theme);
+   } catch(e) {
+     try {
+       var linkFallback = document.createElement("link");
+       linkFallback.rel = "stylesheet";
+       linkFallback.type = "text/css";
+       linkFallback.id = "bnote-theme-css";
+       linkFallback.setAttribute("data-light-theme", "<?php echo $system_data->getTheme(); ?>");
+       linkFallback.setAttribute("data-dark-theme", "dark");
+       linkFallback.href = "style/css/<?php echo $system_data->getTheme(); ?>/bnote.css";
+       document.write(linkFallback.outerHTML);
+     } catch(e2) {}
+   }
+ })();
+ </script>
+ <noscript>
+  <link rel="stylesheet" type="text/css" id="bnote-theme-css" data-light-theme="<?php echo $system_data->getTheme(); ?>" data-dark-theme="dark" href="<?php echo "style/css/" . $system_data->getTheme() . "/bnote.css"?>" />
+ </noscript>
  <link rel='stylesheet' type="text/css" href='vendor/fullcalendar/fullcalendar/dist/fullcalendar.css' />
 
  <script type="text/javascript" src="vendor/components/jquery/jquery.min.js"></script>

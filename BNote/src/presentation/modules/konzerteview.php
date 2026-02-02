@@ -145,7 +145,9 @@ class KonzerteView extends CrudRefLocationView {
 		// concert details
 		Writing::h1($c["title"]);
 		?>
-		<p class="ml-comment"><?php echo $c["notes"]; ?></p>
+		<?php if(isset($c["notes"]) && trim($c["notes"]) != "") { ?>
+			<p class="ml-comment"><?php echo $c["notes"]; ?></p>
+		<?php } ?>
 		
 		<div class="row mb-3">
 		<div class="col-md-3 mt-2"> 
@@ -540,12 +542,12 @@ class KonzerteView extends CrudRefLocationView {
 		$begin = ($c != NULL) ? $c["begin"] : "";
 		$begin_field = new Field("begin", $begin, FieldType::DATETIME);
 		$begin_field->setCssClass("copyDateOrigin");
-		$form->addElement(Lang::txt("KonzerteView_addEntityForm.begin"), $begin_field, true, 3);
+		$form->addElement(Lang::txt("KonzerteView_addEntityForm.begin"), $begin_field, true, 6);
 		
 		$end = ($c != NULL) ? $c["end"] : "";
 		$end_field = new Field("end", $end, FieldType::DATETIME);
 		$end_field->setCssClass("copyDateTarget");
-		$form->addElement(Lang::txt("KonzerteView_addEntityForm.copyDateTarget"), $end_field, true, 3);
+		$form->addElement(Lang::txt("KonzerteView_addEntityForm.copyDateTarget"), $end_field, true, 6);
 		
 		$approve_until = ($c != NULL) ? $c["approve_until"] : "";
 		$approve_field = new Field("approve_until", $approve_until, FieldType::DATETIME);
@@ -553,15 +555,15 @@ class KonzerteView extends CrudRefLocationView {
 		$meeting = ($c != NULL) ? $c["meetingtime"] : "";
 		$meetingtime = new Field("meetingtime", $meeting, FieldType::DATETIME);
 		$meetingtime->setCssClass("copyDateTarget");
-		$form->addElement(Lang::txt("KonzerteView_addEntityForm.meetingtime_from"), $meetingtime, true, 3);
-		$form->addElement(Lang::txt("KonzerteView_addEntityForm.meetingtime_to"), $approve_field, true, 3);
+		$form->addElement(Lang::txt("KonzerteView_addEntityForm.meetingtime_from"), $meetingtime, true, 6);
+		$form->addElement(Lang::txt("KonzerteView_addEntityForm.meetingtime_to"), $approve_field, true, 6);
 		
 		$notes = ($c != NULL) ? $c["notes"] : "";
 		$notesField = new Field("notes", $notes, FieldType::TEXT);
 		$notesField->setColsAndRows(2, 40);
 		$form->addElement(Lang::txt("KonzerteView_addEntityForm.notes"), $notesField, false, 12);
 		
-		$form->setSection(Lang::txt("KonzerteView_addEntityForm.title"), array("title", "status", "begin", "end", "approve_until", "meetingtime", "notes"));
+		$form->setSection(Lang::txt("KonzerteView_addEntityForm.title"), array("title", "status", "begin", "end", "meetingtime", "approve_until", "notes"));
 		
 		// ************* LOCATION AND CONTACT *************
 		// choose location

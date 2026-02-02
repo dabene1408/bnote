@@ -77,7 +77,7 @@ class ChatWidget implements iWriteable {
 		$submitLink = $this->addCommentPrefix . "&otype=" . $this->otype . "&oid=" . $this->oid;
 		
 		?>
-		<hr>
+		<hr class="chatbar-divider">
 		<form id="<?php echo $this->getName(); ?>" action="<?php echo $submitLink; ?>" method="POST" class="row row-cols-lg-auto align-items-center">
 			<div class="col-12 pe-0">
 				<input type="text" class="form-control" name="message" placeholder="<?php echo Lang::txt("ChatWidget_write.messagePlaceholder"); ?>" />

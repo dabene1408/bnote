@@ -140,8 +140,8 @@ class ApplicationDataProvider {
 		));
 		
 		// get all future concerts
-		// super users will see it all
-		if($this->sysdata->isUserSuperUser($uid)) {
+		// super users and admins (group 1) will see it all
+		if($this->sysdata->isUserSuperUser($uid) || $this->sysdata->isUserMemberGroup(1, $uid)) {
 			$query = "SELECT * FROM concert WHERE end > NOW() ORDER BY begin, end";
 			$concerts = $this->database->getSelection($query);
 		}

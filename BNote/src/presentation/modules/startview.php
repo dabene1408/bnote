@@ -164,23 +164,19 @@ class StartView extends CrudRefLocationView {
 				<div class="start_box_content_heading p-2 mb-1"><?php echo $detailsTitle; ?></div>
 				<div class="py-2">
 				<?php 
-				// If discussions are allowed, create column on the right with discussion in chat style
+				// If discussions are allowed, show discussion below the content
 				if($this->getData()->getSysdata()->getDynamicConfigParameter("discussion_on") == 1 && $otype != "N") {
 					?>
-					<div class="row">
-						<div class="col-md-9">
-							<?php 
-							$startFunc = "startView" . $otype;
-							$this->$startFunc();
-							?>
-						</div>
-						<div class="col-md-3">
-							<?php 
-							// Chat Widget
-							$chat = new ChatWidget($otype, $_GET["oid"], $this->getData()->adp(), $this->modePrefix() . "addComment");
-							$chat->write();
-							?>
-						</div>
+					<?php 
+					$startFunc = "startView" . $otype;
+					$this->$startFunc();
+					?>
+					<div class="mt-3">
+						<?php 
+						// Chat Widget
+						$chat = new ChatWidget($otype, $_GET["oid"], $this->getData()->adp(), $this->modePrefix() . "addComment");
+						$chat->write();
+						?>
 					</div>
 					<?php
 				}
@@ -584,7 +580,9 @@ class StartView extends CrudRefLocationView {
 		// concert details
 		Writing::h4($c["title"], "mt-3");
 		?>
-		<p class="ml-comment"><?php echo $c["notes"]; ?></p>
+		<?php if(isset($c["notes"]) && trim($c["notes"]) != "") { ?>
+			<p class="ml-comment"><?php echo $c["notes"]; ?></p>
+		<?php } ?>
 		<table>
 			<tbody>
 				<tr>

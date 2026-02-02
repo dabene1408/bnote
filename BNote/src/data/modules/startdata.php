@@ -128,12 +128,22 @@ class StartData extends AbstractLocationData {
 	
 	function getVotesForUser($uid = -1) {
 		if($uid == -1) $uid = $this->getUserId();
+
+		// admins should see all active votes on start page
+		if($this->getSysdata()->isUserSuperUser() || $this->getSysdata()->isUserMemberGroup(1)) {
+			$query = "SELECT v.id, v.name, v.end, v.is_date, v.is_multi ";
+			$query .= "FROM vote v ";
+			$query .= "WHERE v.is_finished = 0 AND v.end > now() ";
+			$query .= "ORDER BY v.end ASC";
+			return $this->database->getSelection($query);
+		}
 		
-		$query = "SELECT v.id, v.name, v.end, v.is_date, v.is_multi ";
-		$query .= "FROM vote_group vg JOIN vote v ON vg.vote = v.id ";
-		$query .= "WHERE vg.user = ? AND v.is_finished = 0 AND end > now() ";
+		// show votes assigned to the user or authored by the user
+		$query = "SELECT DISTINCT v.id, v.name, v.end, v.is_date, v.is_multi ";
+		$query .= "FROM vote v LEFT JOIN vote_group vg ON vg.vote = v.id ";
+		$query .= "WHERE v.is_finished = 0 AND v.end > now() AND (vg.user = ? OR v.author = ?) ";
 		$query .= "ORDER BY v.end ASC";
-		return $this->database->getSelection($query, array(array("i", $uid)));
+		return $this->database->getSelection($query, array(array("i", $uid), array("i", $uid)));
 	}
 	
 	function getVote($vid) {
@@ -394,9 +404,10 @@ class StartData extends AbstractLocationData {
 	}
 	
 	public function hasMembersWithoutRelations() {
-		// check if a member has no concerts, no rehearsals, no phase and no vote
+		// check if an active user has no concerts, no rehearsals, no phase and no vote
 		$query = "SELECT count(*) as numNonIntegrated
 					FROM contact c
+					 JOIN user u ON u.contact = c.id AND u.isActive = 1
 					 LEFT JOIN (SELECT contact, count(*) as ct FROM concert_contact GROUP BY contact) as con ON c.id = con.contact
 					 LEFT JOIN (SELECT contact, count(*) as ct FROM rehearsal_contact GROUP BY contact) as reh ON c.id = reh.contact
 					 LEFT JOIN (SELECT contact, count(*) as ct FROM rehearsalphase_contact GROUP BY contact) as rph ON c.id = rph.contact

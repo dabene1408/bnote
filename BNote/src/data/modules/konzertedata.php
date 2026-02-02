@@ -132,11 +132,34 @@ class KonzerteData extends AbstractLocationData {
 	
 	function validate($values) {
 		// Manual Validation
-		$this->regex->isSubject($values["title"], "title");
-		$this->regex->isDateTime($values["begin"], "begin");
-		$this->regex->isDateTime($values["end"], "end");
-		$this->regex->isDateTime($values["approve_until"], "approve_until");
-		$this->regex->isDateTime($values["meetingtime"], "meetingtime");
+		if($values == null || count($values) == 0) {
+			return;
+		}
+		$values = $this->normalizeDateTimeFields($values);
+		$this->regex->isSubject($values["title"] ?? "", "title");
+		$this->regex->isDateTime($values["begin"] ?? "", "begin");
+		$this->regex->isDateTime($values["end"] ?? "", "end");
+		$this->regex->isDateTime($values["approve_until"] ?? "", "approve_until");
+		$this->regex->isDateTime($values["meetingtime"] ?? "", "meetingtime");
+		$begin_ts = strtotime($values["begin"]);
+		$approve_ts = strtotime($values["approve_until"]);
+		$meeting_ts = strtotime($values["meetingtime"]);
+		$end_ts = strtotime($values["end"]);
+		if($begin_ts !== false && $approve_ts !== false) {
+			if($approve_ts > ($begin_ts - 120)) {
+				new BNoteError(Lang::txt("KonzerteData_validate.approve_before_begin"));
+			}
+		}
+		if($begin_ts !== false && $meeting_ts !== false) {
+			if($meeting_ts > ($begin_ts - 60)) {
+				new BNoteError(Lang::txt("KonzerteData_validate.meeting_before_begin"));
+			}
+		}
+		if($begin_ts !== false && $end_ts !== false) {
+			if($end_ts < ($begin_ts + 3600)) {
+				new BNoteError(Lang::txt("KonzerteData_validate.end_after_begin"));
+			}
+		}
 		if(isset($values["notes"]) && $values["notes"] != "") {
 			$this->regex->isText($values["notes"], "notes");
 		}
@@ -162,8 +185,24 @@ class KonzerteData extends AbstractLocationData {
 		}
 		$this->validateCustomData($values, $this->getCustomFields(KonzerteData::$CUSTOM_DATA_OTYPE));
 	}
+
+	private function normalizeDateTimeFields($values) {
+		$fields = array("begin", "end", "approve_until", "meetingtime");
+		foreach($fields as $f) {
+			if((!isset($values[$f]) || $values[$f] == "") && isset($values[$f . "_date"]) && isset($values[$f . "_time"])) {
+				if($values[$f . "_date"] != "" && $values[$f . "_time"] != "") {
+					$values[$f] = $values[$f . "_date"] . "T" . $values[$f . "_time"];
+				}
+			}
+			if(isset($values[$f])) {
+				$values[$f] = str_replace(" ", "T", $values[$f]);
+			}
+		}
+		return $values;
+	}
 	
 	function create($values) {
+		$values = $this->normalizeDateTimeFields($values);
 		// at least one group must be selected
 		$groups = GroupSelector::getPostSelection($this->adp()->getGroups(), "group");
 		if(count($groups) == 0) {
@@ -189,6 +228,11 @@ class KonzerteData extends AbstractLocationData {
 		
 		// adds members of the selected group(s), add groups themselves
 		$this->addMembersToConcert($groups, $concertId);
+		// ensure creator is part of the concert contacts (for visibility)
+		$creatorContact = $this->adp()->getUserContact();
+		if($creatorContact != null && $creatorContact != "" && !$this->isContactInConcert($concertId, $creatorContact)) {
+			$this->addConcertContact($concertId, array($creatorContact));
+		}
 		$this->addGroupsToConcert($groups, $concertId);
 		
 		// add equipment
@@ -213,21 +257,111 @@ class KonzerteData extends AbstractLocationData {
 	}
 
 	private function sendCreationReminder($concertId, $values) {
-		$contacts = $this->getConcertContacts($concertId);
 		$contactIds = array();
+
+		// contacts explicitly linked to the concert
+		$contacts = $this->getConcertContacts($concertId);
 		for($i = 1; $i < count($contacts); $i++) {
 			$contactIds[] = $contacts[$i]["id"];
 		}
-		$emails = $this->getContactEmailsByIds($contactIds);
+
+		// contacts from linked groups (extra safety to include all members)
+		$concertGroups = $this->getConcertGroups($concertId);
+		for($g = 1; $g < count($concertGroups); $g++) {
+			$groupContacts = $this->adp()->getGroupContacts($concertGroups[$g]["id"]);
+			for($j = 1; $j < count($groupContacts); $j++) {
+				$contactIds[] = $groupContacts[$j]["id"];
+			}
+		}
+
+		// responsible contact from form, if set
+		if(isset($values["contact"]) && intval($values["contact"]) > 0) {
+			$contactIds[] = intval($values["contact"]);
+		}
+
+		$excludeContactId = null;
+		if(isset($values["contact"]) && intval($values["contact"]) > 0) {
+			$excludeContactId = intval($values["contact"]);
+		}
+
+		$filteredContactIds = array();
+		foreach(array_unique($contactIds) as $cid) {
+			if($excludeContactId != null && $cid == $excludeContactId) {
+				continue;
+			}
+			if($this->getSysdata()->isContactSuperUser($cid)) {
+				continue;
+			}
+			$filteredContactIds[] = $cid;
+		}
+		$emails = $this->getContactEmailsByIds($filteredContactIds);
 		if(count($emails) == 0) {
 			return;
 		}
 		require_once($this->dirPrefix . $GLOBALS["DIR_LOGIC"] . "mailing.php");
 		$subject = $values["title"] . Lang::txt("Notifier_sendConcertNotification.message_1");
-		$body = Lang::txt("Notifier_sendConcertNotification.message_2") . $values["title"] . Lang::txt("Notifier_sendConcertNotification.message_3");
+
+		$begin = isset($values["begin"]) ? Data::convertDateFromDb($values["begin"]) : "-";
+		$end = isset($values["end"]) ? Data::convertDateFromDb($values["end"]) : "-";
+		$meeting = isset($values["meetingtime"]) ? Data::convertDateFromDb($values["meetingtime"]) : "-";
+		$approveUntil = isset($values["approve_until"]) ? Data::convertDateFromDb($values["approve_until"]) : "-";
+		$status = isset($values["status"]) ? Lang::txt("Konzerte_status." . $values["status"]) : "-";
+
+		$locationStr = "-";
+		if(isset($values["location"]) && intval($values["location"]) > 0) {
+			$loc = $this->adp()->getLocation(intval($values["location"]));
+			if($loc != null && isset($loc["id"])) {
+				$addr = "";
+				if(isset($loc["address"]) && $loc["address"] != null) {
+					$address = $this->database->fetchRow("SELECT * FROM address WHERE id = ?", array(array("i", $loc["address"])));
+					if($address != null) {
+						$parts = array();
+						if($address["street"] != "") $parts[] = $address["street"];
+						$city = trim($address["zip"] . " " . $address["city"]);
+						if($city != "") $parts[] = $city;
+						if($address["country"] != "") $parts[] = $address["country"];
+						$addr = join(", ", $parts);
+					}
+				}
+				$locationStr = $loc["name"];
+				if($addr != "") {
+					$locationStr .= " (" . $addr . ")";
+				}
+			}
+		}
+
+		$contactStr = "-";
+		if(isset($values["contact"]) && intval($values["contact"]) > 0) {
+			$contact = $this->getContact(intval($values["contact"]));
+			if($contact != null) {
+				$contactStr = trim($contact["name"] . " " . $contact["surname"]);
+				if(isset($contact["email"]) && $contact["email"] != "") {
+					$contactStr .= " (" . $contact["email"] . ")";
+				}
+			}
+		}
+
+		$notes = "";
+		if(isset($values["notes"]) && trim($values["notes"]) != "") {
+			$notes = nl2br(htmlspecialchars($values["notes"]));
+		}
+
+		$body = "<p>" . Lang::txt("Notifier_sendConcertNotification.message_2") . "<strong>" . htmlspecialchars($values["title"]) . "</strong>" . Lang::txt("Notifier_sendConcertNotification.message_3") . "</p>";
+		$body .= "<table style=\"border-collapse:collapse;\">";
+		$body .= "<tr><td style=\"padding:4px 10px 4px 0;\"><strong>" . Lang::txt("Notifier_sendConcertNotification.detail_when") . "</strong></td><td style=\"padding:4px 0;\">" . $begin . " – " . $end . "</td></tr>";
+		$body .= "<tr><td style=\"padding:4px 10px 4px 0;\"><strong>" . Lang::txt("Notifier_sendConcertNotification.detail_meeting") . "</strong></td><td style=\"padding:4px 0;\">" . $meeting . "</td></tr>";
+		$body .= "<tr><td style=\"padding:4px 10px 4px 0;\"><strong>" . Lang::txt("Notifier_sendConcertNotification.detail_reply") . "</strong></td><td style=\"padding:4px 0;\">" . $approveUntil . "</td></tr>";
+		$body .= "<tr><td style=\"padding:4px 10px 4px 0;\"><strong>" . Lang::txt("Notifier_sendConcertNotification.detail_location") . "</strong></td><td style=\"padding:4px 0;\">" . htmlspecialchars($locationStr) . "</td></tr>";
+		$body .= "<tr><td style=\"padding:4px 10px 4px 0;\"><strong>" . Lang::txt("Notifier_sendConcertNotification.detail_organizer") . "</strong></td><td style=\"padding:4px 0;\">" . htmlspecialchars($values["organizer"] ?? "-") . "</td></tr>";
+		$body .= "<tr><td style=\"padding:4px 10px 4px 0;\"><strong>" . Lang::txt("Notifier_sendConcertNotification.detail_contact") . "</strong></td><td style=\"padding:4px 0;\">" . htmlspecialchars($contactStr) . "</td></tr>";
+		$body .= "<tr><td style=\"padding:4px 10px 4px 0;\"><strong>" . Lang::txt("Notifier_sendConcertNotification.detail_status") . "</strong></td><td style=\"padding:4px 0;\">" . htmlspecialchars($status) . "</td></tr>";
+		if($notes != "") {
+			$body .= "<tr><td style=\"padding:4px 10px 4px 0;\"><strong>" . Lang::txt("Notifier_sendConcertNotification.detail_notes") . "</strong></td><td style=\"padding:4px 0;\">" . $notes . "</td></tr>";
+		}
+		$body .= "</table>";
 		$bnote_url = $this->getSysdata()->getSystemURL();
-		$body .= '<a href="' . $bnote_url . '">' . Lang::txt("Notifier_sendConcertNotification.message_4") . "</a><br/>";
-		$body .= Lang::txt("Notifier_sendConcertNotification.message_5");
+		$body .= '<p><a href="' . $bnote_url . '">' . Lang::txt("Notifier_sendConcertNotification.message_4") . "</a></p>";
+		$body .= "<p>" . Lang::txt("Notifier_sendConcertNotification.message_5") . "</p>";
 		
 		$mail = new Mailing($subject, null);
 		$mail->setBcc($emails);
@@ -236,6 +370,7 @@ class KonzerteData extends AbstractLocationData {
 	}
 	
 	function update($id, $values) {
+		$values = $this->normalizeDateTimeFields($values);
 		// default update
 		parent::update($id, $values);
 	

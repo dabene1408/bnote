@@ -126,6 +126,7 @@ class Mailing {
 		}
 		
 		// building receipient
+		$explicitTo = ($this->to != null && $this->to != "");
 		if($this->to == null) {
 			$to = "";
 		}
@@ -133,24 +134,38 @@ class Mailing {
 			$to = $this->to;
 		}
 		
-		// building sender information
-		$fromEmail = $this->sysdata->getCompanyInformation()["Mail"];
-		if($this->fromId == null) {
-			$fromName = "BNote";
-		}
-		else {
-			$contact = $this->sysdata->getUsersContact($this->fromId);
-			$fromName =  $contact["name"] . " " . $contact["surname"] . " via BNote";
-			$replyTo = $contact["email"];
-			if($to == "") {
-				$to = $contact["email"];
+		// normalize bcc list (unique, trimmed)
+		$normalizedBcc = array();
+		$bccUnique = array();
+		if($this->bcc != NULL) {
+			foreach($this->bcc as $addr) {
+				$addr = trim($addr);
+				if($addr == "") continue;
+				$key = strtolower($addr);
+				if(isset($bccUnique[$key])) continue;
+				$bccUnique[$key] = true;
+				$normalizedBcc[] = $addr;
 			}
 		}
 		
+		// building sender information
+		$fromEmail = $this->sysdata->getCompanyInformation()["Mail"];
+			if($this->fromId == null) {
+				$fromName = "BNote";
+			}
+			else {
+				$contact = $this->sysdata->getUsersContact($this->fromId);
+				$fromName =  $contact["name"] . " " . $contact["surname"] . " via BNote";
+				$replyTo = $contact["email"];
+				if($to == "") {
+					$to = $contact["email"];
+				}
+			}
+		
 		// validation
-		if($this->bcc == null && $this->to == null) {
-			if($silent) return false;
-			new BNoteError(Lang::txt("Mailing_sendMail.BNoteError_2"));
+		if(($normalizedBcc == null || count($normalizedBcc) == 0) && $this->to == null) {
+			// no recipients (e.g. all contacts without email) -> silently abort
+			return false;
 		}
 		if($this->body == null) {
 			if($silent) return false;
@@ -184,11 +199,22 @@ class Mailing {
 		if(isset($GLOBALS['dir_prefix'])) {
 			$dir_prefix = $GLOBALS["dir_prefix"];
 		}
-		$template_path = $dir_prefix . $tpl_path;
-		if(!file_exists($template_path)) {
-			$template_path = dirname(__DIR__, 2) . "/" . $tpl_path;
+		$template = null;
+		$candidates = array(
+			$dir_prefix . $tpl_path,
+			dirname(__DIR__, 3) . "/" . $tpl_path,
+			dirname(__DIR__, 2) . "/" . $tpl_path
+		);
+		foreach($candidates as $candidate) {
+			if($candidate != null && $candidate != "" && file_exists($candidate)) {
+				$template = file_get_contents($candidate);
+				break;
+			}
 		}
-		$template = file_get_contents($template_path);
+		if($template === null || $template === false) {
+			// fallback to inline template if no file exists (e.g. empty data volume)
+			$template = '<!doctype html><html><head><meta charset="%encoding%"><title>%title%</title></head><body style="font-family:Arial,Helvetica,sans-serif;background:#f6f6f6;margin:0;padding:24px;"><div style="max-width:680px;margin:0 auto;background:#ffffff;border:1px solid #e0e0e0;border-radius:6px;padding:24px;"><h2 style="margin:0 0 12px 0;color:#143452;">%title%</h2><div style="color:#2F4152;line-height:1.5;">%content%</div><hr style="border:none;border-top:1px solid #e5e5e5;margin:20px 0;"><div style="font-size:12px;color:#666;">%footer% &middot; <a href="%link%" style="color:#356A9C;text-decoration:none;">%link_name%</a></div></div></body></html>';
+		}
 		
 		// replace placeholders
 		$tpl_mail = str_replace("%encoding%", 'utf-8', $template);
@@ -235,12 +261,18 @@ class Mailing {
 			$envFromName = getenv("BNOTE_SMTP_FROM_NAME");
 			$mail->setFrom(($envFromEmail != false && $envFromEmail != "") ? $envFromEmail : $fromEmail,
 				($envFromName != false && $envFromName != "") ? $envFromName : $fromName);
+			
+			// if no explicit To was provided, move first BCC to To to avoid extra recipients
+			if(!$explicitTo && count($normalizedBcc) > 0) {
+				$to = $normalizedBcc[0];
+				array_shift($normalizedBcc);
+			}
 			if(isset($replyTo)) {
 				$mail->addReplyTo($replyTo);
 			}
 			$mail->addAddress($to);
-			if($this->bcc != NULL) {
-				foreach($this->bcc as $address) {
+			if($normalizedBcc != NULL) {
+				foreach($normalizedBcc as $address) {
 					if($address != "") {
 						$mail->addBCC($address);
 					}
