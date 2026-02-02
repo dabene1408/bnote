@@ -358,10 +358,17 @@ class Form implements iWriteable {
 		$elementKeys = ($this->elementOrder != NULL) ? $this->elementOrder : array_keys($this->elements);
 		foreach ( $elementKeys as $label ) {
 			if(!isset($this->elements [$label])) continue;
+			$key = $label;
 			$element = $this->elements[$label];
 			$required = "";
-			if (isset ( $this->requiredFields [$label] ) && $this->requiredFields [$label]) {
+			if (isset ( $this->requiredFields [$key] ) && $this->requiredFields [$key]) {
 				$required = "*";
+			}
+			if($element instanceof Field && isset($this->requiredFields[$key])) {
+				$element->setRequired($this->requiredFields[$key]);
+			}
+			if($element instanceof Dropdown && isset($this->requiredFields[$key])) {
+				$element->setRequired($this->requiredFields[$key]);
 			}
 			if(isset($this->fieldColSize[$label])) {
 				$colClass = "col-md-" . $this->fieldColSize[$label];

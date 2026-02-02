@@ -184,7 +184,11 @@ class Mailing {
 		if(isset($GLOBALS['dir_prefix'])) {
 			$dir_prefix = $GLOBALS["dir_prefix"];
 		}
-		$template = file_get_contents($dir_prefix . $tpl_path);
+		$template_path = $dir_prefix . $tpl_path;
+		if(!file_exists($template_path)) {
+			$template_path = dirname(__DIR__, 2) . "/" . $tpl_path;
+		}
+		$template = file_get_contents($template_path);
 		
 		// replace placeholders
 		$tpl_mail = str_replace("%encoding%", 'utf-8', $template);

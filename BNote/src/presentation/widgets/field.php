@@ -15,6 +15,8 @@ class Field implements iWriteable {
 	private $cssClass = null;
 	private $cols = 70;
 	private $rows = 10;
+	private $required = false;
+	private $validationType = null;
 	
 	/**
 	 * Uneditable textfield.
@@ -57,6 +59,7 @@ class Field implements iWriteable {
 		$this->name = $name;
 		$this->default_value = $default;
 		$this->type = $type;
+		$this->validationType = $this->defaultValidationType($type);
 	}
 	
 	/**
@@ -89,6 +92,39 @@ class Field implements iWriteable {
 		$this->rows = $rows;
 		$this->cols = $cols;
 	}
+	
+	public function setRequired($required = true) {
+		$this->required = $required;
+	}
+	
+	public function setValidationType($type) {
+		$this->validationType = $type;
+	}
+	
+	private function defaultValidationType($type) {
+		switch($type) {
+			case FieldType::EMAIL: return "email";
+			case FieldType::PASSWORD: return "password";
+			case FieldType::LOGIN: return "login";
+			case FieldType::CHAR: return "name";
+			case FieldType::MINSEC: return "minsec";
+			default: return null;
+		}
+	}
+	
+	private function buildAttributes($extra = "") {
+		$attrs = "";
+		if($this->required) {
+			$attrs .= ' required aria-required="true" data-bnote-required="1"';
+		}
+		if($this->validationType != null && $this->validationType != "") {
+			$attrs .= ' data-bnote-validate="' . $this->validationType . '"';
+		}
+		if($extra != "") {
+			$attrs .= " " . $extra;
+		}
+		return $attrs;
+	}
  
 	/**
 	 * Returns a string with the field in html
@@ -101,6 +137,7 @@ class Field implements iWriteable {
 		    case FieldType::DATE: return $this->Datefield(); break;
 		    case FieldType::TIME: return $this->Timefield(); break;
 		    case FieldType::DATETIME: return $this->Datetimefield(); break;
+		    case FieldType::EMAIL: return $this->Emailfield(); break;
 		    case FieldType::PASSWORD: return $this->Passwordfield(); break;
 		    case FieldType::BOOLEAN: return $this->Checkboxfield(); break;
 		    case FieldType::FILE: return $this->Filefield(); break;
@@ -120,7 +157,8 @@ class Field implements iWriteable {
 	 */
 	private function Textfield() {
 		$css = ($this->cssClass != null) ? $this->cssClass : "";
-		return '<input type="text" class="form-control ' . $css . '" size="' . $this->TEXTLENGTH . '" name="' . $this->name . '" value="' . $this->default_value . '" />';
+		$attrs = $this->buildAttributes();
+		return '<input type="text" class="form-control ' . $css . '" size="' . $this->TEXTLENGTH . '" name="' . $this->name . '" value="' . $this->default_value . '"' . $attrs . ' />';
 	}
 	
 	/**
@@ -128,7 +166,8 @@ class Field implements iWriteable {
 	 */
 	private function Textarea() {
 		$css = ($this->cssClass != null) ? $this->cssClass : "";
-		return '<textarea name="' . $this->name . '" cols="' . $this->cols . '" rows="' . $this->rows . '" class="form-control ' . $css . '">' . $this->default_value . '</textarea>' . "\n";
+		$attrs = $this->buildAttributes();
+		return '<textarea name="' . $this->name . '" cols="' . $this->cols . '" rows="' . $this->rows . '" class="form-control ' . $css . '"' . $attrs . '>' . $this->default_value . '</textarea>' . "\n";
 	}
 	
 	private function tinyMCE() {
@@ -142,7 +181,8 @@ class Field implements iWriteable {
 	 */
 	private function Datefield() {
 		$css = ($this->cssClass != null) ? $this->cssClass : "";
-		return '<input class="form-control ' . $css . '" type="date" name="' . $this->name . '" value="' . $this->default_value . '" />';
+		$attrs = $this->buildAttributes();
+		return '<input class="form-control ' . $css . '" type="date" name="' . $this->name . '" value="' . $this->default_value . '"' . $attrs . ' />';
 	}
 	
 	/**
@@ -172,9 +212,10 @@ class Field implements iWriteable {
 		$dateId = $baseId . "_date";
 		$timeId = $baseId . "_time";
 		$hiddenId = $baseId . "_value";
+		$attrs = $this->buildAttributes('data-bnote-datetime="1"');
 		return '<div class="input-group">'
-				. '<input class="form-control ' . $css . ' bnote-datetime-date" type="date" name="' . $this->name . '_date" id="' . $dateId . '" value="' . $dateVal . '" />'
-				. '<input class="form-control ' . $css . ' bnote-datetime-time" type="time" name="' . $this->name . '_time" id="' . $timeId . '" value="' . $timeVal . '" step="300" />'
+				. '<input class="form-control ' . $css . ' bnote-datetime-date" type="date" name="' . $this->name . '_date" id="' . $dateId . '" value="' . $dateVal . '"' . $attrs . ' />'
+				. '<input class="form-control ' . $css . ' bnote-datetime-time" type="time" name="' . $this->name . '_time" id="' . $timeId . '" value="' . $timeVal . '" step="300"' . $attrs . ' />'
 				. '</div>'
 				. '<input type="hidden" name="' . $this->name . '" id="' . $hiddenId . '" value="' . $hiddenVal . '" />'
 				. '<script>(function(){var d=document.getElementById("' . $dateId . '");var t=document.getElementById("' . $timeId . '");var h=document.getElementById("' . $hiddenId . '");if(!d||!t||!h){return;}var sync=function(){var dv=d.value;var tv=t.value;h.value=(dv&&tv)?(dv+"T"+tv):"";};d.addEventListener("input",sync);t.addEventListener("input",sync);d.addEventListener("change",sync);t.addEventListener("change",sync);sync();})();</script>';
@@ -185,7 +226,8 @@ class Field implements iWriteable {
 	 */
 	private function Timefield() {
 		$css = ($this->cssClass != null) ? $this->cssClass : "";
-		return '<input class="form-control ' . $css . '" type="time" size="' . ($this->DATELENGTH - 4) . '" name="' . $this->name . '" value="' . $this->default_value . '" />';
+		$attrs = $this->buildAttributes();
+		return '<input class="form-control ' . $css . '" type="time" size="' . ($this->DATELENGTH - 4) . '" name="' . $this->name . '" value="' . $this->default_value . '"' . $attrs . ' />';
 	}
 	
 	/**
@@ -193,7 +235,8 @@ class Field implements iWriteable {
 	 */
 	private function Decimalfield() {
 		$css = ($this->cssClass != null) ? $this->cssClass : "";
-		return '<input type="number" step="0.01" class="form-control ' . $css . '" size="' . $this->DECIMALLENGTH . '" name="' . $this->name . '" value="' . $this->default_value . '" />';
+		$attrs = $this->buildAttributes();
+		return '<input type="number" step="0.01" class="form-control ' . $css . '" size="' . $this->DECIMALLENGTH . '" name="' . $this->name . '" value="' . $this->default_value . '"' . $attrs . ' />';
 	}
 	
 	/**
@@ -202,10 +245,11 @@ class Field implements iWriteable {
 	private function Currencyfield() {
 		$sysdata = $GLOBALS["system_data"];
 		$currency = $sysdata->getDynamicConfigParameter("currency");
+		$attrs = $this->buildAttributes();
 		return '
 			<div class="input-group mb-3">
 			  <span class="input-group-text">' . $currency . '</span>
-			  <input type="number" step="0.01" class="form-control" name="' . $this->name . '" value="' . $this->default_value . '" />
+			  <input type="number" step="0.01" class="form-control" name="' . $this->name . '" value="' . $this->default_value . '"' . $attrs . ' />
 			</div>
 		';
 	}
@@ -214,14 +258,22 @@ class Field implements iWriteable {
 	 * Output for a textfield in integerstyle
 	 */
 	private function Integerfield() {
-		return '<input type="number" step="1" class="form-control" size="' . $this->INTEGERLENGTH . '" name="' . $this->name . '" value="' . $this->default_value . '" />';
+		$attrs = $this->buildAttributes();
+		return '<input type="number" step="1" class="form-control" size="' . $this->INTEGERLENGTH . '" name="' . $this->name . '" value="' . $this->default_value . '"' . $attrs . ' />';
+	}
+	
+	private function Emailfield() {
+		$css = ($this->cssClass != null) ? $this->cssClass : "";
+		$attrs = $this->buildAttributes();
+		return '<input type="email" class="form-control ' . $css . '" size="' . $this->TEXTLENGTH . '" name="' . $this->name . '" value="' . $this->default_value . '"' . $attrs . ' />';
 	}
 	
 	/**
 	 * Output for a passwordfield
 	 */
 	private function Passwordfield() {
-		return '<input type="password" class="form-control" size="' . $this->TEXTLENGTH . '" name="' . $this->name . '" value="' . $this->default_value . '" aria-describedby="passwordHelpBlock" />
+		$attrs = $this->buildAttributes();
+		return '<input type="password" class="form-control" size="' . $this->TEXTLENGTH . '" name="' . $this->name . '" value="' . $this->default_value . '" aria-describedby="passwordHelpBlock"' . $attrs . ' />
 		<div id="passwordHelpBlock" class="form-text">' . Lang::txt("Field.password_description") . '</div>';
 	}
 	
@@ -231,9 +283,10 @@ class Field implements iWriteable {
 	private function MinuteSecondfield() {
 		$value = Data::convertMinSecFromDb($this->default_value);
 		$name = $this->name;
+		$attrs = $this->buildAttributes();
 		return <<<EOS
 			<div class="input-group">
-				<input type="text" class="form-control" name="$name" value="$value" aria-describedby="minsecunit">
+				<input type="text" class="form-control" name="$name" value="$value" aria-describedby="minsecunit"$attrs>
 				<span class="input-group-text" id="minsecunit">min</span>
 			</div>
 		EOS;
@@ -247,7 +300,8 @@ class Field implements iWriteable {
 		$checked = "";
 		if ($dv == "checked" || $dv == "true" || $dv == 1)
 			$checked = "checked";
-		return '<input type="checkbox" role="switch" class="form-check-input" name="' . $this->name . '" ' . $checked . '/>';
+		$attrs = $this->buildAttributes();
+		return '<input type="checkbox" role="switch" class="form-check-input" name="' . $this->name . '" ' . $checked . $attrs . '/>';
 	}
 	
 	/**
@@ -261,7 +315,8 @@ class Field implements iWriteable {
 	 * Output for a file-input.
 	 */
 	private function Filefield() {
-		return '<input type="file" class="form-control" name="' . $this->name . '" />';
+		$attrs = $this->buildAttributes();
+		return '<input type="file" class="form-control" name="' . $this->name . '"' . $attrs . ' />';
 	}
 	
 	private function DatetimeSelector() {
@@ -364,7 +419,7 @@ class Field implements iWriteable {
 	
 	private function multifilefield() {
 		?>
-  		<input class="form-control" type="file" name="<?php echo $this->name; ?>[]" multiple />
+  		<input class="form-control" type="file" name="<?php echo $this->name; ?>[]" multiple <?php echo $this->buildAttributes(); ?> />
 		<?php
 	}
 }

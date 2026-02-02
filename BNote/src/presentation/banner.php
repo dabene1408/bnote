@@ -33,6 +33,9 @@
 			<?php
 			}
 			?>
+			<button type="button" class="btn btn-link p-2 text-light bnote-theme-toggle" aria-label="Dark mode umschalten" title="Dark mode umschalten">
+				<i class="bi-moon-stars"></i>
+			</button>
 			<button class="navbar-toggler d-md-none collapsed"
 				type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu"
 				aria-controls="sidebarMenu" aria-expanded="false"

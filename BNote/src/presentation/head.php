@@ -13,7 +13,7 @@
  <link rel="stylesheet" type="text/css" href="vendor/enyo/dropzone/dist/min/dropzone.min.css" />
  <link rel="stylesheet" href="vendor/twbs/bootstrap-icons/font/bootstrap-icons.min.css" />
  <link rel="stylesheet" type="text/css" href="vendor/datatables/datatables/media/css/jquery.dataTables.min.css" />
- <link rel="stylesheet" type="text/css" href="<?php echo "style/css/" . $system_data->getTheme() . "/bnote.css"?>" />
+ <link rel="stylesheet" type="text/css" id="bnote-theme-css" data-light-theme="<?php echo $system_data->getTheme(); ?>" data-dark-theme="dark" href="<?php echo "style/css/" . $system_data->getTheme() . "/bnote.css"?>" />
  <link rel='stylesheet' type="text/css" href='vendor/fullcalendar/fullcalendar/dist/fullcalendar.css' />
 
  <script type="text/javascript" src="vendor/components/jquery/jquery.min.js"></script>
@@ -25,5 +25,8 @@
  <script type="text/javascript" src="vendor/tinymce/tinymce/tinymce.min.js" ></script>
  <script type="text/javascript" src="vendor/enyo/dropzone/dist/min/dropzone.min.js"></script>
  <script type="text/javascript" src="<?php echo $GLOBALS["DIR_LOGIC"]; ?>main.js"></script>
+ <script type="text/javascript">
+<?php $system_data->regex->getJSValidationFunctions(); ?>
+ </script>
   
 </HEAD>
