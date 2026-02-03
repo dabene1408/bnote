@@ -94,6 +94,8 @@ class CalendarView extends CrudRefLocationView {
 		$beginField->setCssClass("copyDateOrigin");
 		$endField = $form->getElement("end");
 		$endField->setCssClass("copyDateTarget");
+		$form->setFieldRequired("begin", true);
+		$form->setFieldRequired("end", true);
 		
 		// adapt sizing
 		$form->setFieldColSize("begin", 3);
@@ -109,6 +111,8 @@ class CalendarView extends CrudRefLocationView {
 		$form->setFieldColSize("begin", 3);
 		$form->setFieldColSize("end", 3);
 		$form->setFieldColSize("notes", 12);
+		$form->setFieldRequired("begin", true);
+		$form->setFieldRequired("end", true);
 		
 		// custom data
 		$customData = $this->getData()->getCustomData($record["id"]);

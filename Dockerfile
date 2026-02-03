@@ -13,7 +13,13 @@ RUN apt-get update -y \
 WORKDIR /var/www/html
 
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
-COPY BNote/data/iso3166-code3.csv /opt/bnote-seed/iso3166-code3.csv
+COPY BNote/data/impressum.html /opt/bnote-seed/data/impressum.html
+COPY BNote/data/terms.html /opt/bnote-seed/data/terms.html
+COPY BNote/data/mail_template.html /opt/bnote-seed/data/mail_template.html
+COPY BNote/data/iso3166-code3.csv /opt/bnote-seed/data/iso3166-code3.csv
+COPY BNote/data/help /opt/bnote-seed/data/help
+COPY BNote/data/members/.htaccess /opt/bnote-seed/data/members/.htaccess
+COPY BNote/data/share/.htaccess /opt/bnote-seed/data/share/.htaccess
 RUN chmod +x /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["entrypoint.sh"]
 CMD ["apache2-foreground"]

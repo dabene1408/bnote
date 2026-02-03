@@ -31,8 +31,8 @@ mkdir -p "${BNOTE_ROOT}/config" \
   "${BNOTE_ROOT}/data/share/users" \
   "${BNOTE_ROOT}/data/share/groups"
 
-if [ ! -f "${BNOTE_ROOT}/data/iso3166-code3.csv" ] && [ -f /opt/bnote-seed/iso3166-code3.csv ]; then
-  cp /opt/bnote-seed/iso3166-code3.csv "${BNOTE_ROOT}/data/iso3166-code3.csv"
+if [ -d /opt/bnote-seed/data ]; then
+  cp -an /opt/bnote-seed/data/. "${BNOTE_ROOT}/data/" || true
 fi
 chown -R www-data:www-data "${BNOTE_ROOT}/config" "${BNOTE_ROOT}/data" || true
 

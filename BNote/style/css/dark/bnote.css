@@ -918,23 +918,42 @@ a.start_card {
 
 /* --- Dark mode overrides (2026 refresh) --- */
 :root {
-  --dm-bg: #0f1115;
-  --dm-surface: #151a22;
-  --dm-surface-2: #1c2330;
-  --dm-surface-3: #222b3a;
-  --dm-border: #2c3747;
-  --dm-text: #e6e9ef;
-  --dm-text-muted: #aab1bd;
-  --dm-primary: #7cc4ff;
-  --dm-primary-strong: #4aa3f0;
-  --dm-accent: #8bdc7b;
-  --dm-warn: #ffb86b;
-  --dm-danger: #ff6b6b;
+  --dm-bg: #0e1217;
+  --dm-surface: #1a2330;
+  --dm-surface-2: #212c3c;
+  --dm-surface-3: #2b384d;
+  --dm-border: #3a4a61;
+  --dm-text: #eef2f8;
+  --dm-text-muted: #c0c7d2;
+  --dm-primary: #8cc9ff;
+  --dm-primary-strong: #5db2ff;
+  --dm-accent: #8fe79a;
+  --dm-warn: #ffc27a;
+  --dm-danger: #ff7a7a;
 }
 
 body {
   background-color: var(--dm-bg);
   color: var(--dm-text);
+}
+
+#content_insets,
+#content_insets * {
+  color: var(--dm-text);
+}
+
+.text-dark,
+.text-body {
+  color: var(--dm-text) !important;
+}
+
+.text-muted,
+.text-secondary {
+  color: var(--dm-text-muted) !important;
+}
+
+.form-text {
+  color: var(--dm-text-muted) !important;
 }
 
 a, a:hover, a:focus {
@@ -966,9 +985,24 @@ a, a:hover, a:focus {
 }
 
 .card, .membercard, .box, .BNoteTable, .DataTable, .BNoteTableRow {
-  background-color: var(--dm-surface);
+  background-color: var(--dm-surface-2);
   color: var(--dm-text);
   border-color: var(--dm-border) !important;
+}
+
+.membercard {
+  background-color: var(--dm-surface-2);
+  border-color: var(--dm-border);
+  color: var(--dm-text);
+}
+
+.membercard_instrument,
+.membercard_phone,
+.membercard_web,
+.membercard_address,
+.membercard_customfields,
+.membercard_customfields .customfield_entry {
+  color: var(--dm-text) !important;
 }
 
 input.form-control,
@@ -1006,14 +1040,142 @@ table.dataTable thead th,
   border-bottom: 1px solid var(--dm-border) !important;
 }
 
-table.dataTable tbody tr,
-.BNoteTableRow {
-  background-color: var(--dm-surface);
-}
-
 table.dataTable tbody tr:nth-child(2n),
 .BNoteTableRow:nth-child(2n) {
+  background-color: var(--dm-surface-3);
+}
+
+table.dataTable tbody tr,
+.BNoteTableRow {
   background-color: var(--dm-surface-2);
+}
+
+table.dataTable tr.odd td {
+  background-color: var(--dm-surface-2);
+}
+
+table.dataTable tr.even td {
+  background-color: var(--dm-surface-3);
+}
+
+table.dataTable tbody td,
+.BNoteTableRow td {
+  color: var(--dm-text) !important;
+}
+
+table.table {
+  background-color: var(--dm-surface-2);
+  color: var(--dm-text);
+}
+
+table.table thead th {
+  background-color: var(--dm-surface-3);
+  color: var(--dm-text);
+}
+
+table.table tbody td {
+  background-color: var(--dm-surface-2);
+  color: var(--dm-text);
+}
+
+table.table tbody tr:nth-child(2n) td {
+  background-color: var(--dm-surface-3);
+}
+
+.table-responsive {
+  background-color: var(--dm-surface-2);
+  border: 1px solid var(--dm-border);
+  border-radius: 12px;
+  padding: 0.25rem;
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.table-responsive > table {
+  margin-bottom: 0;
+  color: var(--dm-text);
+}
+
+.table-responsive > table th,
+.table-responsive > table td {
+  border-color: var(--dm-border);
+  color: var(--dm-text);
+}
+
+.table-responsive > table thead th {
+  background-color: var(--dm-surface-3);
+  color: var(--dm-text);
+}
+
+.dataTables_wrapper {
+  color: var(--dm-text);
+}
+
+.dataTables_wrapper .dataTables_filter input,
+.dataTables_wrapper .dataTables_length select {
+  background-color: var(--dm-surface-2);
+  color: var(--dm-text);
+  border: 1px solid var(--dm-border);
+  border-radius: 8px;
+}
+
+/* FullCalendar dark tweaks */
+.fc {
+  --fc-page-bg-color: var(--dm-surface-2);
+  --fc-border-color: var(--dm-border);
+  --fc-neutral-bg-color: var(--dm-surface-2);
+  --fc-today-bg-color: rgba(140, 201, 255, 0.12);
+  --fc-list-event-hover-bg-color: var(--dm-surface-3);
+  color: var(--dm-text);
+}
+
+.fc-unthemed td.fc-today,
+.fc td.fc-today {
+  background: rgba(140, 201, 255, 0.12) !important;
+  border-color: var(--dm-border);
+}
+
+.fc .fc-daygrid-day {
+  border-color: var(--dm-border);
+}
+
+.fc .fc-daygrid-day-frame,
+.fc .fc-scrollgrid,
+.fc .fc-scrollgrid-section > td {
+  background-color: var(--dm-surface-2);
+}
+
+.fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-frame {
+  background-color: rgba(140, 201, 255, 0.12) !important;
+}
+
+.fc .fc-daygrid-day-number {
+  color: var(--dm-text);
+}
+
+.icon-green {
+  color: var(--dm-accent) !important;
+}
+
+.icon-yellow,
+.warning {
+  color: var(--dm-warn) !important;
+}
+
+.icon-red {
+  color: var(--dm-danger) !important;
+}
+
+.start_box_status_confirmed {
+  color: var(--dm-accent) !important;
+}
+
+.start_box_status_cancelled {
+  color: var(--dm-danger) !important;
+}
+
+.start_box_status_hidden {
+  color: var(--dm-text-muted) !important;
 }
 
 .btn-primary {

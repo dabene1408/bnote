@@ -24,7 +24,7 @@ class LoginView extends AbstractView {
 			new Message(Lang::txt("LoginView_login.fwd_header"), Lang::txt("LoginView_login.fwd_message"));
 		}
 		
-		Writing::p(Lang::txt("LoginView_login.message_2"), "text-dark mt-2");
+		Writing::p(Lang::txt("LoginView_login.message_2"), "mt-2");
 		
 		// login form
 		$form = new Form("", $this->modePrefix() . "login");

@@ -37,6 +37,9 @@ class AppointmentView extends CrudRefLocationView {
 	
 	function changeDefaultAddEntityForm($form) {
 		$this->appendCustomFieldsToForm($form, 'a', null, false);
+		$form->setFieldRequired("name", true);
+		$form->setFieldRequired("begin", true);
+		$form->setFieldRequired("end", true);
 		// groups
 		$groups = $this->getData()->adp()->getGroups();
 		$groupSelector = new GroupSelector($groups, array(), "group");
@@ -95,6 +98,9 @@ class AppointmentView extends CrudRefLocationView {
 		// full data
 		$appointment = $this->getData()->getAppointment($record["id"]);
 		$this->appendCustomFieldsToForm($form, 'a', $appointment);
+		$form->setFieldRequired("name", true);
+		$form->setFieldRequired("begin", true);
+		$form->setFieldRequired("end", true);
 		
 		// groups
 		$groups = $this->getData()->adp()->getGroups();

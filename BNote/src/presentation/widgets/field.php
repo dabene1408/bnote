@@ -218,7 +218,7 @@ class Field implements iWriteable {
 				. '<input class="form-control ' . $css . ' bnote-datetime-time" type="time" name="' . $this->name . '_time" id="' . $timeId . '" value="' . $timeVal . '" step="60"' . $attrs . ' />'
 				. '</div>'
 				. '<input type="hidden" name="' . $this->name . '" id="' . $hiddenId . '" value="' . $hiddenVal . '" />'
-				. '<script>(function(){var d=document.getElementById("' . $dateId . '");var t=document.getElementById("' . $timeId . '");var h=document.getElementById("' . $hiddenId . '");if(!d||!t||!h){return;}var sync=function(){var dv=d.value;var tv=t.value;h.value=(dv&&tv)?(dv+"T"+tv):"";};d.addEventListener("input",sync);t.addEventListener("input",sync);d.addEventListener("change",sync);t.addEventListener("change",sync);sync();})();</script>';
+				. '<script>(function(){var d=document.getElementById("' . $dateId . '");var t=document.getElementById("' . $timeId . '");var h=document.getElementById("' . $hiddenId . '");if(!d||!t||!h){return;}var sync=function(){var dv=d.value;var tv=t.value;h.value=(dv&&tv)?(dv+"T"+tv):"";};d.addEventListener("input",sync);t.addEventListener("input",sync);d.addEventListener("change",sync);t.addEventListener("change",sync);var f=d.form||t.form||h.form;if(f){f.addEventListener("submit",sync);}sync();})();</script>';
 	}
 	
 	/**
